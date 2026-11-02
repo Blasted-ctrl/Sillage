@@ -1,141 +1,164 @@
 # Sillage
 
-Sillage is a fragrance recommendation project that turns perfume metadata into searchable semantic profiles. The backend cleans a large Fragrantica dataset, builds text embeddings for each fragrance, stores them in Supabase with `pgvector`, and serves recommendation endpoints through FastAPI.
+Find your next fragrance by the notes you love, a feeling you want, or a bottle you already know. Sillage turns its fragrance catalogue into an explainable shortlist for deciding **what to sample before buying a bottle**.
 
-The goal was to make fragrance discovery feel more natural than exact keyword matching. Instead of requiring users to know a specific bottle, the system supports prompts like "warm vanilla woody date-night scent" and returns fragrances with similar note and accord profiles.
+The React app includes an interactive Three.js bottle, scent search, fragrance-to-fragrance discovery, note exclusions, a personal shelf, likes/dislikes, and comparisons of up to three fragrances. Search runs locally against the checked-in catalogue: no API key, hosted database, model download, or paid service is required.
 
-## What We Built
+![Sillage discovery interface with its interactive 3D bottle](docs/sillage-preview.png)
 
-- A data-cleaning pipeline for a 24,063-row fragrance dataset
-- An embedding generation and upload workflow using `sentence-transformers`
-- A Supabase-backed vector search layer for similarity lookup
-- A FastAPI API for free-text recommendation and fragrance-to-fragrance matching
-- A React + TypeScript frontend workspace for the client application
+## Run locally
 
-## Recruiter Summary
-
-This project demonstrates:
-
-- Applied NLP: converting product metadata into semantic embeddings for search
-- Recommendation systems: matching user intent and related products with vector similarity
-- Data engineering: cleaning, reshaping, and preparing a large CSV dataset for downstream use
-- Full-stack thinking: connecting a React frontend to a Python API and hosted vector database
-- Practical product design: building around a real user problem, fragrance discovery
-
-## How It Works
-
-### 1. Dataset Preparation
-
-The raw Fragrantica export is cleaned in [`backend/clean_data.py`](/C:/Users/kings/Sillage/fragranceproj/backend/clean_data.py). The script:
-
-- standardizes column names
-- fixes rating formatting issues
-- combines accord columns into a single field
-- preserves top, middle, and base note information
-- creates an `embedding_text` string for each fragrance
-
-That `embedding_text` becomes the semantic representation used for recommendations.
-
-### 2. Embedding + Database Upload
-
-[`backend/embed_and_upload.py`](/C:/Users/kings/Sillage/fragranceproj/backend/embed_and_upload.py) loads the cleaned dataset, generates embeddings with `all-MiniLM-L6-v2`, and uploads rows to Supabase in batches.
-
-Each stored record includes:
-
-- fragrance metadata
-- accords and note breakdowns
-- a generated embedding vector for similarity search
-
-### 3. Recommendation API
-
-[`backend/api.py`](/C:/Users/kings/Sillage/fragranceproj/backend/api.py) exposes two primary endpoints:
-
-- `POST /search`
-  Returns fragrances similar to a free-text description
-- `POST /similar`
-  Fuzzy-matches a fragrance name, then returns related fragrances using its stored embedding
-
-The API uses:
-
-- `FastAPI` for the service layer
-- `SentenceTransformers` for text embeddings
-- `Supabase` for storage and RPC access
-- `thefuzz` for name matching
-- `pgvector`-style similarity search through a Supabase RPC function
-
-## Repository Structure
-
-```text
-fragranceproj/
-├─ backend/
-│  ├─ api.py                  # FastAPI recommendation service
-│  ├─ clean_data.py           # dataset cleaning + embedding text generation
-│  ├─ embed_and_upload.py     # embedding creation + Supabase upload
-│  ├─ main.py                 # CLI prototype for note-based ranking
-│  ├─ scoring.py              # earlier scoring-based recommendation logic
-│  └─ data/
-│     ├─ fragrantica_dataset.csv
-│     └─ fragrances_clean.csv
-└─ frontend/
-   └─ src/
-      └─ App.tsx
-```
-
-## Current State
-
-The strongest completed work in this repository is the backend recommendation pipeline and vector-search API.
-
-The frontend workspace is present and configured with React, TypeScript, and Vite, but the checked-in UI is still a starter scaffold rather than the final product interface. For recruiter review, the most representative engineering work is in the backend data, ML, and API layers.
-
-## Tech Stack
-
-- Python
-- FastAPI
-- Pandas
-- Sentence Transformers
-- Supabase
-- React
-- TypeScript
-- Vite
-
-## Running Locally
-
-### Backend
-
-From `backend/`, install the Python dependencies used by the scripts and API, then provide:
-
-- `SUPABASE_URL`
-- `SUPABASE_KEY`
-
-Run the API with your preferred ASGI server, for example:
+Requirements: **Python 3.12+** and **Node.js 24 LTS**. Run the following from the repository root.
 
 ```bash
-uvicorn api:app --reload
+python -m venv .venv
+# Windows PowerShell
+.venv\Scripts\Activate.ps1
+# macOS / Linux
+# source .venv/bin/activate
+pip install -r backend/requirements-dev.txt
 ```
 
-### Frontend
-
-From `frontend/`:
+Start the API in one terminal:
 
 ```bash
-npm install
+cd backend
+python -m uvicorn api:app --reload --host 127.0.0.1 --port 8000
+```
+
+Start the frontend in a second terminal:
+
+```bash
+cd frontend
+npm ci
 npm run dev
 ```
 
-## Highlights
+Open [localhost:5173](http://localhost:5173). Vite forwards `/api` to the local API. Interactive API documentation is at [localhost:8000/docs](http://localhost:8000/docs).
 
-- Processed a 24,063-item fragrance dataset into a vector-search-ready format
-- Built a semantic search flow for subjective product discovery
-- Added fuzzy name matching to improve retrieval when user input is imperfect
-- Structured the project so data prep, embedding generation, and API serving are separate stages
+If port 8000 is occupied, choose another port for Uvicorn and set `API_PROXY_TARGET` in the environment of the Vite process, for example `http://127.0.0.1:8107`.
 
-## Future Improvements
+## Discovery experience
 
-- Replace the current frontend scaffold with the full search and results experience
-- Add saved favorites and comparison views
-- Improve evaluation with click-through or user preference feedback
-- Add deployment configuration and environment setup documentation
+- **Describe a scent:** try `warm vanilla sandalwood`, `fresh citrus for summer`, or `woody vetiver without rose`.
+- **Start with a fragrance:** search a brand/name, select the exact bottle, and explore related scent profiles. The source bottle is excluded by its stable ID.
+- **Refine:** exclude listed notes or accords, browse catalogue gender labels, and choose closest profiles or more variety. Unisex fragrances are included with men's and women's filters.
+- **Understand the match:** open a result to inspect its top, heart and base notes, strongest shared features, cosine similarity, and original catalogue source.
+- **Build your shelf:** save scents to try, like scents you enjoy, or dislike scents that don't work for you. Liked and disliked profiles affect subsequent searches when personalization is enabled.
+- **Compare:** inspect up to three fragrances side by side, including their dry-down notes.
 
-## Why This Project Matters
+Your shelf is stored in this browser, up to 50 entries. Search sends the liked/disliked IDs to the API to construct that request's taste profile; it does not create a server-side account or feedback database. A saved bookmark alone is not treated as a positive rating. You can turn personalization off and remove entries at any time.
 
-Fragrance shopping is a good recommendation problem because people often describe what they want emotionally or sensorially, not by exact product names. This project shows how semantic embeddings and vector search can bridge that gap and create a more intuitive discovery experience.
+## Recommendation algorithm
+
+The default engine is in [`backend/recommender.py`](backend/recommender.py). It indexes 23,845 distinct usable profiles from the current cleaned CSV; this number changes if the catalogue is updated.
+
+1. Normalize and deduplicate notes and fragrance identities. Stable IDs come from source URLs. Names and brands are used for lookup, rather than contaminating scent vectors.
+2. Build sparse features from top, heart and base notes with weights of `1`, `1.25` and `1.5`. Main accords start at weight `2`, declining with their listed position. These are initial heuristic weights, not measured note concentrations.
+3. Apply sublinear term frequency and inverse document frequency, then L2 normalization. Rare scent features contribute more than common ones.
+4. Recognize actual note/accord phrases, a small explicit synonym dictionary, and transparent mood expansions. This is bounded vocabulary matching, not an LLM interpreting arbitrary prose.
+5. Add `0.65 × mean(liked profiles)` and subtract `0.35 × mean(disliked profiles)` from the query profile, then normalize again. These are heuristic relevance-feedback coefficients.
+6. Score with **cosine similarity**: the dot product of unit-length scent vectors.
+7. Apply exclusions and catalogue filters before selecting candidates. Recognized negations such as `without rose` are hard exclusions. Exclusions only cover the listed metadata; they are not ingredient or allergy guarantees.
+8. Rerank up to 200 candidates (240 at the maximum result limit) with maximal marginal relevance: `(1 - diversity) × query similarity - diversity × maximum similarity to an already-selected result`. The default diversity weight is `0.15`; choosing closest profiles disables this adjustment.
+9. Explain each match with the scent features contributing most to its cosine score.
+
+The displayed similarity is **not a probability of satisfaction**. Filters and a diversity reranker do not manufacture confidence. Ratings from the imported dataset are not used for ranking because their quality has not been validated. No claim of better human recommendation accuracy has been established yet; the test suite checks behavior and mathematical correctness.
+
+The underlying normalization and sparse cosine calculation follow [scikit-learn's TF–IDF documentation](https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfTransformer.html) and [cosine similarity definition](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.cosine_similarity.html).
+
+## Learning better weights
+
+An optional, deterministic training tool is included in [`backend/train_weights.py`](backend/train_weights.py). It learns positive feature weights through gradient descent on pairwise logistic loss, while retaining weighted cosine similarity for retrieval.
+
+**No trained model or real preference dataset is included.** The running baseline already fits corpus IDF statistics, but its note-layer and personalization weights are heuristics. Browser likes/dislikes personalize a request; they do not train a global model or silently upload training events.
+
+Collect explicit, consented preference comparisons in JSONL, one object per line:
+
+```json
+{"user_id":"pseudonymous-user-id","query":"woody vanilla","positive_id":"catalogue-id-here","negative_id":"different-catalogue-id"}
+```
+
+Use actual 16-character IDs returned by `/catalogue` or recommendation results. The example above is a schema illustration, not training data. Both products should have been judged by the same user for that query; distinguish actual skin-test feedback from guesses and clicks. Exclusions remain a separate hard constraint.
+
+```bash
+cd backend
+python train_weights.py /path/to/consented-feedback.jsonl --output /path/to/scent-weights.json
+```
+
+The tool requires at least 20 pairs from at least five users as a basic input guard. Those minimums are **not** a credible sample size for product-quality claims. It holds out 25% of users with a fixed seed, reports pairwise accuracy and logistic loss against unweighted cosine, and writes a candidate only if held-out accuracy does not worsen and loss improves. Weights are bounded between `0.25` and `4`. An independent test set, uncertainty estimates and online evaluation are still needed before promotion.
+
+To explicitly enable an evaluated model, set `SCENT_WEIGHTS_PATH` to its absolute path before starting the API. The model must match the catalogue's feature/IDF signature, have finite weights of the expected dimension, and use the supported format. Invalid models fail startup. Removing the variable returns to the baseline. The health endpoint reports whether learned weights are active.
+
+**Why this approach:** cosine is the scoring function; gradient descent is a way to learn its weights. Softmax could support a future candidate-selection training objective, but softmax outputs alone would not be calibrated buying confidence. A CNN is not the first choice for this unordered, sparse note metadata. Evaluate a learned metric or pairwise reranker against this baseline before adding a neural model.
+
+## API
+
+| Endpoint | Purpose |
+| --- | --- |
+| `GET /` | Health, usable catalogue size and active model status |
+| `GET /catalogue?q=dior%20sauvage&limit=8` | Brand/name suggestions with stable IDs |
+| `POST /search` | Query-based recommendations with preferences and exclusions |
+| `POST /similar` | Recommendations from `cologne_id` or a fuzzy-matched `cologne_name` |
+
+Example request:
+
+```json
+{
+  "query": "woody vanilla without rose",
+  "limit": 9,
+  "avoid_notes": ["oud"],
+  "liked_ids": [],
+  "disliked_ids": [],
+  "gender": "all",
+  "diversity": 0.15
+}
+```
+
+Limits: 1–24 results, up to 30 note exclusions, and up to 50 liked/disliked IDs per list. Unknown IDs, invalid filters, empty intent and oversized input are rejected. Unrecognized scent vocabulary returns an honest empty state. `/similar` preserves the original string-valued `matched` field and also returns the full `source` profile.
+
+## Checks
+
+With the Python environment activated:
+
+```bash
+python -m pytest backend/tests -q
+cd frontend
+npm run lint
+npm run build
+npm run test:e2e
+```
+
+Browser tests use installed Google Chrome with an isolated profile. Install it if needed with `npx playwright install chrome`. Tests start their own frontend on 5177 and API on 8107, and use one worker. In local runs an existing service at those exact URLs may be reused. In CI both services are started fresh. The workflow checks Python behavior, frontend lint/build and real browser flows, including accessibility, responsive overflow, exclusions, personalized requests, lookup, comparison, persistence, and error recovery.
+
+The 3D scene uses Three.js through React Three Fiber. It is lazy loaded, renders on demand, caps pixel density, uses local geometry and generated label textures, and loads no remote models or fonts. Rotation is user controlled with drag and keyboard-accessible buttons. Reduced motion disables cosmetic transitions and the loading spinner. WebGL failure leaves the search usable. Three.js is pinned to r182 to match Fiber 9's Clock-based runtime without deprecation warnings; revisit both together when upgrading the renderer.
+
+The production dependency audit is clean at the time of this update. The full npm audit still reports 12 moderate development-tool dependency advisories in the ESLint/minimatch tree; avoid a forced downgrade or incompatible transitive override as a shortcut. The lazy 3D bundle also triggers Vite's default chunk-size advisory; it is kept separate from the search interface.
+
+## Deployment
+
+Build the frontend with `npm run build` and serve `frontend/dist` using a static host. Provide either a same-origin `/api` reverse proxy to the FastAPI service, or set `VITE_API_URL` to the deployed API URL **before building**. The Vite development proxy does not exist in a static production build. Never put service secrets in `VITE_` variables.
+
+Deploy the API with `backend/requirements.txt`, include `backend/data/fragrances_clean.csv`, and run `uvicorn api:app --host 0.0.0.0 --port $PORT` from `backend/` (use your host's port syntax). Set `CORS_ORIGINS` to the frontend origin(s), separated by commas. `.env.example` documents the environment variables; the API reads the process environment, so use your host's environment settings or Uvicorn's `--env-file` option for local files.
+
+The catalogue is indexed once per process, with no network calls at startup. Each worker owns a copy of that index. Add a reverse proxy with request limits/rate limits and measure memory/latency before exposing a public deployment. No hosting credentials or existing production URL were supplied, so these changes do not provision or redeploy a hosted site.
+
+## Data and limitations
+
+The repository includes an imported Fragrantica dataset and earlier cleaning/embedding scripts. The main app uses `backend/data/fragrances_clean.csv`; the original Supabase/SentenceTransformer upload pipeline remains available as an optional experiment, with its own external dependencies. It is not required by the default API.
+
+Imported notes are descriptive catalogue metadata, not verified formulas. Prices, availability, longevity, projection, batch changes and skin chemistry are not reliably represented. Source links let users inspect the original entries. Dataset provenance and redistribution rights should be verified before public/commercial redistribution; this repository does not establish a new licence for third-party data. Sampling remains the practical next step after a match.
+
+The GitHub main branch contained a Vite starter rather than the existing product UI described in the brief. The discovery experience lives in new files; the original `App.tsx`, `App.css` and `index.css` have been retained for reference. No Remotion composition was present, so no video migration was performed.
+
+## Most useful next improvements
+
+1. **A sample-first path:** link to verified decants/samples, record what users actually tried, and let them revisit their shortlist after a full day of wear.
+2. **A short taste onboarding:** ask for two loved scents, one disliked scent, and which notes feel wrong. Offer a profile-only search for people who cannot name a bottle.
+3. **Reliable price and availability:** connect licensed retailer data, distinguish bottle sizes and concentrations, and support a real budget filter only when current price coverage exists.
+4. **Consented evaluation data:** collect explicit comparisons and post-sampling ratings, split evaluation by user and time, compare Recall/NDCG and satisfaction against the cosine baseline, and account for exposure/position bias.
+5. **A wear diary:** collect skin-tested longevity, projection and weather/context with clear sample counts and uncertainty. Keep these separate from imported catalogue claims.
+6. **Catalogue quality:** verify provenance, repair malformed names/ratings, identify concentration/reformulation differences, audit missing notes, and add licensed bottle photography.
+7. **Shareable and portable shelves:** add optional accounts, cross-device sync, export and shareable comparisons without making sign-up a condition of discovery.
+
+Prioritize sampling feedback and data quality before a larger neural model: the quality of the labels and the evaluation will set the ceiling.
