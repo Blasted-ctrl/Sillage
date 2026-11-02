@@ -1,164 +1,98 @@
-# FastAPI backend for the Cologne Recommender.
-# Two endpoints:
-#   POST /search  — embed a text query, find similar colognes
-#   POST /similar — find a cologne by name, return similar ones
-
-#User types in React chat
- #       ↓
-#React sends HTTP request to FastAPI
- #       ↓
-#FastAPI runs Python — embeds the query,
-#searches Supabase with cosine similarity
-  #      ↓
-#FastAPI sends back JSON results
- #       ↓
-#React receives JSON and renders the cologne cards
-
-
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from sentence_transformers import SentenceTransformer
-from supabase import create_client
-from dotenv import load_dotenv
-from thefuzz import process
+"""Sillage API. Runs against the checked-in catalogue without external services."""
 import os
-import re
+from contextlib import asynccontextmanager
+from functools import lru_cache
+from typing import Annotated, Literal
 
-# ── Startup
-load_dotenv()
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field, StringConstraints, model_validator
+from recommender import Recommender
 
-if not SUPABASE_URL or not SUPABASE_KEY:
-    raise Exception("Missing SUPABASE_URL or SUPABASE_KEY in .env file!")
 
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+@lru_cache(maxsize=1)
+def get_engine():
+    return Recommender(weights_path=os.getenv("SCENT_WEIGHTS_PATH"))
 
-model = SentenceTransformer('all-MiniLM-L6-v2')
 
-# We load all names once
-response = supabase.table("colognes").select("id, name, brand").limit(300000).execute()
-all_colognes = response.data
-print(f"[startup] Ready — {len(all_colognes)} colognes loaded\n")
+@asynccontextmanager
+async def lifespan(app):
+    get_engine()
+    yield
 
-# ── App setup
-app = FastAPI()
 
-# CORS — allows our React frontend to call this API
-# In production we'll lock this down to our real domain
+app = FastAPI(title="Sillage", version="1.0.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(","),
+    allow_methods=["GET", "POST"], allow_headers=["Content-Type"],
 )
-
-# ── Request models
-class SearchRequest(BaseModel):
-    # "Find me something warm and woody with vanilla"
-    query: str
-    limit: int = 10
-
-class SimilarRequest(BaseModel):
-    # "Dior Sauvage"
-    cologne_name: str
-    limit: int = 10
-
-# ── Helper ────────────────────────────────────────────────────
-def run_similarity_search(embedding: list, limit: int):
-    """
-    Takes a vector and returns the most similar colognes from Supabase.
-    Uses the pgvector cosine similarity index we created in Task 2.
-    """
-    result = supabase.rpc("match_colognes", {
-        "query_embedding": embedding,
-        "match_count": limit
-    }).execute()
-    return result.data
-
-def check_valid_input(text: str) -> bool:
-    """
-    Checks for input
-    """
-    return bool(re.search(r"[a-zA-Z]", text))
+FragranceId = Annotated[str, StringConstraints(pattern=r"^[a-f0-9]{16}$")]
+Note = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=80)]
 
 
+class Preferences(BaseModel):
+    limit: int = Field(default=9, ge=1, le=24)
+    avoid_notes: list[Note] = Field(default_factory=list, max_length=30)
+    liked_ids: list[FragranceId] = Field(default_factory=list, max_length=50)
+    disliked_ids: list[FragranceId] = Field(default_factory=list, max_length=50)
+    gender: Literal["all", "men", "women", "unisex"] = "all"
+    diversity: float = Field(default=0.15, ge=0, le=0.4, allow_inf_nan=False)
 
-# ── Routes
+
+class SearchRequest(Preferences):
+    query: str = Field(default="", max_length=1000)
+
+    @model_validator(mode="after")
+    def require_intent(self):
+        self.query = self.query.strip()
+        if not self.query and not self.liked_ids:
+            raise ValueError("Describe a scent or choose a fragrance you like")
+        if self.query and not any(character.isalpha() for character in self.query):
+            raise ValueError("Please describe a scent using words")
+        return self
+
+
+class SimilarRequest(Preferences):
+    cologne_name: str = Field(default="", max_length=200)
+    cologne_id: FragranceId | None = None
+
+    @model_validator(mode="after")
+    def require_source(self):
+        if not self.cologne_id and len(self.cologne_name.strip()) < 3:
+            raise ValueError("Choose a fragrance or enter at least three characters")
+        return self
+
+
+Engine = Annotated[Recommender, Depends(get_engine)]
+
+
 @app.get("/")
-def root():
-    return {"status": "Cologne Recommender API is running"}
+def root(engine: Engine):
+    return {"status": "ok", "catalogue_size": len(engine.records), "method": "weighted-tfidf-cosine", "learned_weights": engine.learned_weights}
+
+
+@app.get("/catalogue")
+def catalogue(engine: Engine, q: str = Query(min_length=2, max_length=100), limit: int = Query(default=8, ge=1, le=20)):
+    return {"results": engine.suggest(q, limit)}
 
 
 @app.post("/search")
-def search(req: SearchRequest):
-    """
-    Embed the user's free-text query and return the most similar colognes.
-    Example: { "query": "warm vanilla spicy oriental" }
-    """
-
-    if not req.query.strip():
-        raise HTTPException(status_code=400, detail="Query cannot be empty")
-    
-    if not check_valid_input(req.query):
-     raise HTTPException(status_code=400, detail="Query must contain letters")
-
-
-    # Convert the user's text into a vector
-    embedding = model.encode(req.query).tolist()
-
-    results = run_similarity_search(embedding, req.limit)
-
-    if not results:
-        raise HTTPException(status_code=404, detail="No similar colognes found")
-
-    return {"results": results}
+def search(req: SearchRequest, engine: Engine):
+    try:
+        return engine.recommend(**req.model_dump())
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
 
 
 @app.post("/similar")
-def similar(req: SimilarRequest):
-    """
-    Find a cologne by name (fuzzy matched) and return similar colognes.
-    Example: { "cologne_name": "Dior Sauvage" }
-    """
-
-    if not req.cologne_name.strip():
-        raise HTTPException(status_code=400, detail="Cologne name cannot be empty")
-    
-    if not check_valid_input(req.cologne_name):
-        raise HTTPException(status_code=400, detail="Query must contain letters")
-
-
-    name_lookup = {f"{c['brand']} {c['name']}": c['id'] for c in all_colognes}
-
-    best_match, score = process.extractOne(req.cologne_name, name_lookup.keys())
-
-    if score < 50:
-        raise HTTPException(status_code=404, detail=f"Could not find a cologne matching '{req.cologne_name}'")
-
-    cologne_id = name_lookup[best_match]
-
-    # Fetch that cologne's stored embedding from Supabase
-    cologne = supabase.table("colognes").select("name, brand, embedding").eq("id", cologne_id).single().execute()
-
-    if not cologne.data or not cologne.data.get("embedding"):
-        raise HTTPException(status_code=404, detail="Cologne found but has no embedding")
-
-    print(f"[/similar] Found '{cologne.data['name']}' by '{cologne.data['brand']}', searching for similar...")
-
-
-    embedding = cologne.data["embedding"]
-    results = run_similarity_search(embedding, req.limit)
-
-    results = [
-        c for c in results
-        if c["similarity"] < 1
-    ]
-    #removes the fragrances
-   
-    print(f"[/similar] Returning {len(results)} results")
-    return {
-        "matched": best_match,
-        "results": results
-    }
+def similar(req: SimilarRequest, engine: Engine):
+    try:
+        source_id = req.cologne_id
+        if not source_id:
+            source_id = engine.records[engine.resolve_name(req.cologne_name)]["id"]
+        result = engine.recommend(source_id=source_id, **req.model_dump(exclude={"cologne_name", "cologne_id"}))
+        source = result.pop("matched")
+        return {**result, "matched": f"{source['brand']} {source['name']}", "source": source}
+    except ValueError as error:
+        raise HTTPException(status_code=404, detail=str(error)) from error
