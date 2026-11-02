@@ -1,10 +1,13 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
+import '@fontsource/gloock/latin-400.css'
+import '@fontsource/manrope/latin-400.css'
+import '@fontsource/manrope/latin-600.css'
+import './sillage.css'
+import Discovery from './Discovery.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <Discovery />
   </StrictMode>,
 )

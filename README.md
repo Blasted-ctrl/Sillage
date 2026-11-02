@@ -2,9 +2,9 @@
 
 Find your next fragrance by the notes you love, a feeling you want, or a bottle you already know. Sillage turns its fragrance catalogue into an explainable shortlist for deciding **what to sample before buying a bottle**.
 
-The frontend has been restored to its original pre-change appearance and entry point (`App.tsx`, `App.css`, and `index.css`). The replacement discovery interface is no longer mounted. The improved cosine recommendation API and optional training tools remain available independently, with no API key, hosted database, model download, or paid service required.
+The blue-and-yellow discovery interface puts an interactive 3D cologne bottle at the center of the home page, surrounded by a soft mist atmosphere. Choose a scent mood, describe your ideal fragrance, or start with a bottle you already love. Search, note exclusions, your shelf, likes/dislikes, and side-by-side comparisons connect to the local cosine recommendation API. No API key, hosted database, model download, or paid service is required.
 
-![Restored original frontend](docs/sillage-preview.png)
+![Sillage blue-and-yellow fragrance discovery interface](docs/sillage-preview.png)
 
 ## Run locally
 
@@ -34,13 +34,16 @@ npm ci
 npm run dev
 ```
 
-Open [localhost:5173](http://localhost:5173) for the restored frontend. It does not currently call the recommendation API. Vite retains its `/api` proxy for future integration. Interactive API documentation is at [localhost:8000/docs](http://localhost:8000/docs).
+Open [localhost:5173](http://localhost:5173) with the API running. Vite forwards `/api` requests to the backend. Interactive API documentation is at [localhost:8000/docs](http://localhost:8000/docs).
 
 If port 8000 is occupied, choose another port for Uvicorn and set `API_PROXY_TARGET` in the environment of the Vite process, for example `http://127.0.0.1:8107`.
 
-## Archived discovery prototype
+## Discovery experience
 
-The following describes the unmounted `Discovery.tsx` reference implementation, not the restored frontend currently served at `/`.
+The home page is a fragrance studio: ultramarine and lemon-yellow typography, a centered cobalt bottle, local Gloock/Manrope fonts, and a quieter pale-blue discovery workbench.
+
+- **Explore the bottle:** drag to rotate, use the keyboard-accessible rotation buttons, or release a short mist burst. The atmosphere settles after 4.8 seconds rather than looping indefinitely.
+- **Choose a mood:** Citrus & sky, Sunlit amber, and After the rain change both the visual bottle mood and the actual recommendation query.
 
 - **Describe a scent:** try `warm vanilla sandalwood`, `fresh citrus for summer`, or `woody vetiver without rose`.
 - **Start with a fragrance:** search a brand/name, select the exact bottle, and explore related scent profiles. The source bottle is excluded by its stable ID.
@@ -131,11 +134,11 @@ npm run build
 npm run test:e2e
 ```
 
-Browser tests use installed Google Chrome with an isolated profile. Install it if needed with `npx playwright install chrome`. Tests start the frontend on 5177 with one worker. In local runs an existing frontend at that URL may be reused; CI starts it fresh. Browser checks cover the restored interface in light and dark modes, its counter interaction, mobile overflow, and the absence of unintended API requests. The workflow separately checks recommendation behavior through the Python tests, then frontend lint/build and browser checks.
+Browser tests use installed Google Chrome with an isolated profile. Install it if needed with `npx playwright install chrome`. Tests start the frontend on 5177 and API on 8107 with one worker. Local runs may reuse services at those exact URLs; CI starts them fresh. Five browser flows cover real recommendations, exclusions, lookup, shelf persistence, comparison, errors, accessibility, responsive overflow, the centered bottle, mood-query wiring, and a mist burst that settles to a still frame. The workflow separately checks recommendation behavior through the Python tests, then frontend lint/build and browser checks.
 
-The archived, unmounted 3D scene uses Three.js through React Three Fiber. It is lazy loaded, renders on demand, caps pixel density, uses local geometry and generated label textures, and loads no remote models or fonts. Rotation is user controlled with drag and keyboard-accessible buttons. Reduced motion disables cosmetic transitions and the loading spinner. WebGL failure leaves the search usable. Three.js is pinned to r182 to match Fiber 9's Clock-based runtime without deprecation warnings; revisit both together when upgrading the renderer.
+The centered 3D bottle and mist use Three.js through React Three Fiber. The scene is lazy loaded, renders on demand, caps pixel density, uses local geometry and generated textures, and loads no remote models or fonts. Rotation is user controlled with drag and keyboard-accessible buttons. Mist uses deterministic local sprite textures and a finite animation. Reduced motion uses a static mist pose and immediate bottle rotation, and disables cosmetic transitions and the loading spinner. WebGL failure leaves the search usable. Three.js is pinned to r182 to match Fiber 9's Clock-based runtime without deprecation warnings; revisit both together when upgrading the renderer.
 
-The production dependency audit is clean at the time of this update. The full npm audit still reports 12 moderate development-tool dependency advisories in the ESLint/minimatch tree; avoid a forced downgrade or incompatible transitive override as a shortcut. The restored frontend does not import the 3D prototype, so that code is not included in its runtime bundle.
+The production dependency audit is clean at the time of this update. The full npm audit still reports 12 moderate development-tool dependency advisories in the ESLint/minimatch tree; avoid a forced downgrade or incompatible transitive override as a shortcut. The lazy 3D bundle is kept separate from the search interface and triggers Vite's default size advisory.
 
 ## Deployment
 
@@ -151,7 +154,7 @@ The repository includes an imported Fragrantica dataset and earlier cleaning/emb
 
 Imported notes are descriptive catalogue metadata, not verified formulas. Prices, availability, longevity, projection, batch changes and skin chemistry are not reliably represented. Source links let users inspect the original entries. Dataset provenance and redistribution rights should be verified before public/commercial redistribution; this repository does not establish a new licence for third-party data. Sampling remains the practical next step after a match.
 
-The GitHub main branch contained a Vite starter rather than the existing product UI described in the brief. The original `App.tsx`, `App.css` and `index.css` are active again following the requested frontend restoration. The discovery prototype remains in separate, unmounted files for reference. No Remotion composition was present, so no video migration was performed.
+The active frontend is `frontend/src/Discovery.tsx`. Its visual system is declared in `tokens.css`, with shared defaults in `base.css` and application styling in `sillage.css`. The original Vite `App.tsx` and styles remain as legacy reference files and are not mounted.
 
 ## Most useful next improvements
 

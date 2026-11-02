@@ -15,6 +15,7 @@ import {
   Sparkles,
   ThumbsDown,
   ThumbsUp,
+  SprayCan,
   X,
 } from 'lucide-react'
 import { api } from './api'
@@ -22,11 +23,23 @@ import { useShelf } from './useShelf'
 import type { Fragrance, Match, SearchResponse, ShelfItem } from './types'
 
 const BottleScene = lazy(() => import('./BottleScene'))
-const initialQuery = 'Woody, fresh, with bergamot'
+const initialQuery = 'Fresh citrus bergamot neroli'
 const presets = [
-  { name: 'Fresh & effortless', query: 'Fresh citrus bergamot musk' },
-  { name: 'Warm & intimate', query: 'Warm vanilla sandalwood amber' },
-  { name: 'Dark & woody', query: 'Woody vetiver incense without rose' },
+  {
+    name: 'Citrus & sky',
+    query: 'Fresh citrus bergamot neroli',
+    notes: ['Bergamot', 'Neroli', 'Musk'],
+  },
+  {
+    name: 'Sunlit amber',
+    query: 'Warm vanilla sandalwood amber',
+    notes: ['Vanilla', 'Sandalwood', 'Amber'],
+  },
+  {
+    name: 'After the rain',
+    query: 'Woody vetiver cedar fresh without rose',
+    notes: ['Vetiver', 'Cedar', 'Fresh woods'],
+  },
 ]
 
 function title(value: string) {
@@ -159,7 +172,9 @@ export default function Discovery() {
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [comparison, setComparison] = useState<Fragrance[]>([])
-  const [rotation, setRotation] = useState(-0.28)
+  const [rotation, setRotation] = useState(-0.32)
+  const [mood, setMood] = useState(0)
+  const [mistBurst, setMistBurst] = useState(0)
   const { shelf, save, remove, storageError } = useShelf()
   const request = useRef<AbortController | null>(null)
   const input = useRef<HTMLInputElement>(null)
@@ -321,9 +336,21 @@ export default function Discovery() {
       <header className="site-header">
         <a href="#top" className="wordmark" aria-label="Sillage home">
           Sillage
-          <span className="wordmark-flourish" aria-hidden="true">
-            /
-          </span>
+          <svg
+            className="brand-mark"
+            width="25"
+            height="25"
+            viewBox="0 0 25 25"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M4 5C18 1 8 12 21 7M3 12C17 8 7 19 20 14M2 19C16 15 6 26 19 21"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+          </svg>
         </a>
         <nav aria-label="Main navigation">
           <a className="nav-active" href="#discover">
@@ -342,10 +369,83 @@ export default function Discovery() {
       </header>
       <main>
         <section className="hero-section" aria-labelledby="hero-title">
+          <h1 id="hero-title">Something in the air.</h1>
+          <div className="hero-moods">
+            <fieldset>
+              <legend>Find your mood</legend>
+              {presets.map((preset, index) => (
+                <button
+                  key={preset.name}
+                  type="button"
+                  aria-pressed={mood === index}
+                  onClick={() => {
+                    setMood(index)
+                    setMistBurst((value) => value + 1)
+                    void search(undefined, preset.query)
+                  }}
+                >
+                  <span>{preset.name}</span>
+                  <ArrowRight size={16} aria-hidden="true" />
+                </button>
+              ))}
+            </fieldset>
+            <dl className="mood-notes">
+              <div>
+                <dt>Opens with</dt>
+                <dd>{presets[mood].notes[0]}</dd>
+              </div>
+              <div>
+                <dt>Settles into</dt>
+                <dd>{presets[mood].notes[2]}</dd>
+              </div>
+            </dl>
+          </div>
+          <figure className="bottle-stage">
+            <div className="mist-ground" aria-hidden="true" />
+            <div className="bottle-canvas" aria-hidden="true">
+              <Suspense
+                fallback={
+                  <div className="scene-fallback">A scent taking shape.</div>
+                }
+              >
+                <BottleScene
+                  rotation={rotation}
+                  mood={mood}
+                  burst={mistBurst}
+                />
+              </Suspense>
+            </div>
+            <div className="bottle-controls">
+              <button
+                type="button"
+                className="icon-button"
+                aria-label="Rotate bottle left"
+                onClick={() => setRotation((value) => value - 0.6)}
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <button
+                type="button"
+                className="mist-button"
+                onClick={() => setMistBurst((value) => value + 1)}
+              >
+                <SprayCan size={17} aria-hidden="true" />
+                Release mist
+              </button>
+              <button
+                type="button"
+                className="icon-button"
+                aria-label="Rotate bottle right"
+                onClick={() => setRotation((value) => value + 0.6)}
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
+            <figcaption>Drag to explore the bottle</figcaption>
+          </figure>
           <div className="hero-copy">
-            <h1 id="hero-title">Find your kind of unforgettable.</h1>
             <p>
-              Discover fragrances by the notes you love, before buying a bottle.
+              Find fragrances that feel like you, before you buy the bottle.
             </p>
             <a
               className="primary-button"
@@ -355,49 +455,14 @@ export default function Discovery() {
               Find my scent <ArrowRight size={18} aria-hidden="true" />
             </a>
             <span className="hero-footnote">
-              <FlaskConical size={16} aria-hidden="true" /> A considered
-              shortlist. A better place to start.
+              Less guesswork.
+              <br />
+              More good chemistry.
             </span>
           </div>
-          <div className="bottle-stage">
-            <div className="bottle-orbit orbit-one" />
-            <div className="bottle-orbit orbit-two" />
-            <div className="bottle-canvas" aria-hidden="true">
-              <Suspense
-                fallback={
-                  <div className="scene-fallback">A scent taking shape.</div>
-                }
-              >
-                <BottleScene rotation={rotation} />
-              </Suspense>
-            </div>
-            <span className="note-float note-one">
-              Top <span>Bergamot</span>
-            </span>
-            <span className="note-float note-two">
-              Heart <span>Cedar</span>
-            </span>
-            <span className="note-float note-three">
-              Base <span>Amber</span>
-            </span>
-            <div className="bottle-controls">
-              <button
-                className="icon-button"
-                aria-label="Rotate bottle left"
-                onClick={() => setRotation((value) => value - 0.45)}
-              >
-                <ChevronLeft size={16} />
-              </button>
-              <span>Drag to explore</span>
-              <button
-                className="icon-button"
-                aria-label="Rotate bottle right"
-                onClick={() => setRotation((value) => value + 0.45)}
-              >
-                <ChevronRight size={16} />
-              </button>
-            </div>
-          </div>
+          <a className="hero-scroll" href="#discover">
+            Follow your senses <ArrowDown size={15} aria-hidden="true" />
+          </a>
         </section>
         <section
           id="discover"
@@ -406,7 +471,7 @@ export default function Discovery() {
         >
           <div className="section-heading">
             <div>
-              <h2 id="discovery-title">What are you drawn to?</h2>
+              <h2 id="discovery-title">Your next scent starts here.</h2>
               <p>A note, a feeling, or a fragrance you already love.</p>
             </div>
             <span className="section-symbol" aria-hidden="true">
@@ -594,19 +659,6 @@ export default function Discovery() {
               </div>
             </form>
           </div>
-          <div className="preset-row">
-            <span>A little inspiration</span>
-            {presets.map((preset) => (
-              <button
-                key={preset.name}
-                disabled={loading}
-                onClick={() => void search(undefined, preset.query)}
-              >
-                {preset.name}
-                <ArrowRight size={13} aria-hidden="true" />
-              </button>
-            ))}
-          </div>
         </section>
         <section
           ref={results}
@@ -619,9 +671,7 @@ export default function Discovery() {
           <div className="section-heading">
             <div>
               <h2 id="results-title">
-                {loading
-                  ? 'Finding your next discovery'
-                  : 'Your scent shortlist'}
+                {loading ? 'Finding your next discovery' : 'The scent edit'}
               </h2>
               <p>
                 {response
@@ -767,7 +817,7 @@ export default function Discovery() {
         >
           <div className="section-heading">
             <div>
-              <h2 id="shelf-title">Your shelf, your taste.</h2>
+              <h2 id="shelf-title">Keep a little collection.</h2>
               <p>
                 Save a possibility. Like what you’ve tried. Skip what isn’t you.
               </p>
@@ -838,7 +888,7 @@ export default function Discovery() {
           className="approach-section"
           aria-labelledby="approach-title"
         >
-          <h2 id="approach-title">A feeling, grounded in notes.</h2>
+          <h2 id="approach-title">Follow the notes. Trust your nose.</h2>
           <div>
             <p>
               We compare the character of fragrances: their accords, their
@@ -866,11 +916,23 @@ export default function Discovery() {
       <footer className="site-footer">
         <a className="wordmark" href="#top">
           Sillage
-          <span className="wordmark-flourish" aria-hidden="true">
-            /
-          </span>
+          <svg
+            className="brand-mark"
+            width="25"
+            height="25"
+            viewBox="0 0 25 25"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M4 5C18 1 8 12 21 7M3 12C17 8 7 19 20 14M2 19C16 15 6 26 19 21"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+          </svg>
         </a>
-        <p>Find something that stays with you.</p>
+        <p>A little mystery looks good on you.</p>
         <a
           href="https://github.com/Blasted-ctrl/Sillage"
           target="_blank"
