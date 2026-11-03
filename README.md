@@ -6,6 +6,8 @@ The blue-and-yellow discovery interface puts an interactive 3D cologne bottle at
 
 ![Sillage blue-and-yellow fragrance discovery interface](docs/sillage-preview.png)
 
+![Sillage fragrance catalogue and discovery workbench](docs/sillage-discovery.png)
+
 ## Run locally
 
 Requirements: **Python 3.12+** and **Node.js 24 LTS**. Run the following from the repository root.
@@ -40,7 +42,7 @@ If port 8000 is occupied, choose another port for Uvicorn and set `API_PROXY_TAR
 
 ## Discovery experience
 
-The home page is an interactive fragrance study: midnight blue, pale yellow accents, architectural framing, oversized background lettering, and local Manrope typography. A sculptural glass bottle sits at the center, with directional studio reflections and a low mist atmosphere. A lighter discovery workbench keeps fragrance search and comparison readable.
+The home page is an interactive fragrance study: midnight blue, pale yellow accents, architectural framing, oversized background lettering, and local Manrope typography. A sculptural glass bottle sits at the center, with directional studio reflections and a low mist atmosphere. A two-column discovery workbench leads into an ordered fragrance catalogue, with opening and dry-down notes visible before opening details. Quiet save, taste, and comparison controls keep the emphasis on the fragrances.
 
 - **Explore the bottle:** drag to rotate, use the keyboard-accessible rotation buttons, or release a short mist burst. The atmosphere settles after 4.8 seconds rather than looping indefinitely.
 - **Glass and light:** the procedural Three.js / React Three Fiber bottle uses physical transmission, a separate liquid volume, a ribbed metal cap, and a transparent printed label. Studio lights are generated locally; there are no external model or environment downloads. The bottle is an original Sillage visual, not a product listing.
@@ -155,7 +157,7 @@ The repository includes an imported Fragrantica dataset and earlier cleaning/emb
 
 Imported notes are descriptive catalogue metadata, not verified formulas. Prices, availability, longevity, projection, batch changes and skin chemistry are not reliably represented. Source links let users inspect the original entries. Dataset provenance and redistribution rights should be verified before public/commercial redistribution; this repository does not establish a new licence for third-party data. Sampling remains the practical next step after a match.
 
-The active frontend is `frontend/src/Discovery.tsx`. Its visual system is declared in `tokens.css`, with shared defaults in `base.css` and application styling in `sillage.css`. The original Vite `App.tsx` and styles remain as legacy reference files and are not mounted.
+The active frontend is `frontend/src/Discovery.tsx`, with result presentation in `frontend/src/components/FragranceCard.tsx`. Its visual system is declared in `tokens.css`, with shared defaults in `base.css` and application styling in `sillage.css` and the focused discovery refinements in `refinement.css`. The original Vite `App.tsx` and styles remain as legacy reference files and are not mounted.
 
 ## Most useful next improvements
 

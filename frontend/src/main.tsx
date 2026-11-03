@@ -4,6 +4,7 @@ import '@fontsource/manrope/latin-400.css'
 import '@fontsource/manrope/latin-600.css'
 import '@fontsource/manrope/latin-800.css'
 import './sillage.css'
+import './refinement.css'
 import Discovery from './Discovery.tsx'
 
 createRoot(document.getElementById('root')!).render(

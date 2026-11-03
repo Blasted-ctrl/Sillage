@@ -99,7 +99,7 @@ test('desktop and mobile remain accessible with motion reduced', async ({
     .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
     .analyze()
   expect(accessibility.violations).toEqual([])
-  for (const width of [390, 768, 1280, 1920]) {
+  for (const width of [320, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 })
     expect(
       await page.evaluate(
@@ -107,12 +107,28 @@ test('desktop and mobile remain accessible with motion reduced', async ({
       ),
     ).toBe(true)
   }
+  await page.getByRole('button', { name: 'Refine your search' }).click()
+  await page.getByLabel('Describe your ideal scent').focus()
+  await page.keyboard.press('Tab')
+  await expect(
+    page.getByRole('button', { name: 'Find my scent', exact: true }),
+  ).toBeFocused()
   await page.setViewportSize({ width: 1440, height: 900 })
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await page.screenshot({ path: '.hallmark/refined-home.png' })
+  await page.evaluate(() =>
+    window.scrollTo(0, document.getElementById('discover')!.offsetTop),
+  )
+  await page.screenshot({ path: '.hallmark/refined-discovery-desktop.png' })
   await page.screenshot({
     path: 'test-results/sillage-desktop.png',
     fullPage: true,
   })
   await page.setViewportSize({ width: 390, height: 844 })
+  await page.evaluate(() =>
+    window.scrollTo(0, document.getElementById('discover')!.offsetTop),
+  )
+  await page.screenshot({ path: '.hallmark/refined-discovery-mobile.png' })
   await page.screenshot({
     path: 'test-results/sillage-mobile.png',
     fullPage: true,

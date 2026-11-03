@@ -18,9 +18,10 @@ import {
   SprayCan,
   X,
 } from 'lucide-react'
+import FragranceCard from './components/FragranceCard'
 import { api } from './api'
 import { useShelf } from './useShelf'
-import type { Fragrance, Match, SearchResponse, ShelfItem } from './types'
+import type { Fragrance, SearchResponse, ShelfItem } from './types'
 
 const BottleScene = lazy(() => import('./BottleScene'))
 const initialQuery = 'Fresh citrus bergamot neroli'
@@ -50,108 +51,6 @@ function errorMessage(error: unknown) {
     !['TypeError', 'TimeoutError'].includes(error.name)
     ? error.message
     : 'We couldn’t reach the scent library. Please try again in a moment.'
-}
-
-function FragranceCard({
-  fragrance,
-  preference,
-  onSave,
-  comparing,
-  onCompare,
-  comparisonFull,
-}: {
-  fragrance: Match
-  preference?: ShelfItem['preference']
-  onSave: (item: Fragrance, preference: ShelfItem['preference']) => void
-  comparing: boolean
-  onCompare: () => void
-  comparisonFull: boolean
-}) {
-  return (
-    <article className="fragrance-card">
-      <div className="card-top">
-        <span className="brand">{title(fragrance.brand)}</span>
-        <button
-          className="icon-button"
-          aria-label={`${preference === 'saved' ? 'Unsave' : 'Save'} ${title(fragrance.name)}`}
-          aria-pressed={preference === 'saved'}
-          onClick={() => onSave(fragrance, 'saved')}
-        >
-          <Bookmark
-            size={18}
-            fill={preference === 'saved' ? 'currentColor' : 'none'}
-          />
-        </button>
-      </div>
-      <h3>{title(fragrance.name)}</h3>
-      <p className="card-category">
-        {fragrance.gender === 'men'
-          ? 'Marketed for men'
-          : fragrance.gender === 'women'
-            ? 'Marketed for women'
-            : 'Unisex'}
-      </p>
-      <div className="accords" aria-label="Main accords">
-        {fragrance.accords.slice(0, 3).map((accord) => (
-          <span key={accord}>{accord}</span>
-        ))}
-      </div>
-      <p className="match-reason">
-        <Sparkles size={14} aria-hidden="true" />
-        <span>
-          Shared character:{' '}
-          {fragrance.matched_notes.join(', ') || 'your scent profile'}
-        </span>
-      </p>
-      <details className="scent-details">
-        <summary>Inside this scent</summary>
-        <dl>
-          {(['top', 'middle', 'base'] as const).map((layer) => (
-            <div key={layer}>
-              <dt>{layer === 'middle' ? 'Heart' : title(layer)}</dt>
-              <dd>{fragrance.notes[layer].join(', ') || 'Not listed'}</dd>
-            </div>
-          ))}
-        </dl>
-        <p className="similarity">
-          Scent similarity: {fragrance.similarity.toFixed(2)} / 1
-        </p>
-        <p>A comparison of scent profiles, not a probability you’ll like it.</p>
-        <a href={fragrance.url} target="_blank" rel="noreferrer">
-          View catalogue source
-        </a>
-      </details>
-      <div className="card-actions">
-        <button
-          className="compare-button"
-          aria-pressed={comparing}
-          disabled={comparisonFull && !comparing}
-          onClick={onCompare}
-        >
-          {comparing ? <Check size={15} /> : <Layers3 size={15} />}{' '}
-          {comparing ? 'Comparing' : 'Compare'}
-        </button>
-        <div className="taste-actions">
-          <button
-            className="icon-button"
-            aria-label={`Like ${title(fragrance.name)}`}
-            aria-pressed={preference === 'liked'}
-            onClick={() => onSave(fragrance, 'liked')}
-          >
-            <ThumbsUp size={16} />
-          </button>
-          <button
-            className="icon-button"
-            aria-label={`Dislike ${title(fragrance.name)}`}
-            aria-pressed={preference === 'disliked'}
-            onClick={() => onSave(fragrance, 'disliked')}
-          >
-            <ThumbsDown size={16} />
-          </button>
-        </div>
-      </div>
-    </article>
-  )
 }
 
 export default function Discovery() {
@@ -470,7 +369,6 @@ export default function Discovery() {
                 <ChevronRight size={18} />
               </button>
             </div>
-            <figcaption>Drag to explore the bottle</figcaption>
           </figure>
           <div className="hero-copy">
             <p>Find a fragrance that feels like you. Before the blind buy.</p>
@@ -496,8 +394,10 @@ export default function Discovery() {
         >
           <div className="section-heading">
             <div>
-              <h2 id="discovery-title">Your next scent starts here.</h2>
-              <p>A note, a feeling, or a fragrance you already love.</p>
+              <h2 id="discovery-title">A scent of your own.</h2>
+              <p>
+                Start with a feeling. Find something worth getting closer to.
+              </p>
             </div>
             <span className="section-symbol" aria-hidden="true">
               <FlaskConical size={25} strokeWidth={1.25} />
@@ -614,9 +514,7 @@ export default function Discovery() {
                 </p>
               )}
               <div className="search-options">
-                <span>
-                  Be specific about what you love. And what you don’t.
-                </span>
+                <span>Your notes. Your preferences.</span>
                 <button
                   type="button"
                   className="text-button"
@@ -696,7 +594,7 @@ export default function Discovery() {
           <div className="section-heading">
             <div>
               <h2 id="results-title">
-                {loading ? 'Finding your next discovery' : 'The scent edit'}
+                {loading ? 'Finding your scent' : 'Your scent edit'}
               </h2>
               <p>
                 {response
@@ -704,7 +602,7 @@ export default function Discovery() {
                   : 'Thoughtfully matched to your scent profile.'}
               </p>
             </div>
-            {response && (
+            {response && !loading && (
               <span className="results-count">
                 {response.results.length}{' '}
                 {response.results.length === 1 ? 'discovery' : 'discoveries'}
@@ -716,9 +614,18 @@ export default function Discovery() {
             {storageError && <p>{storageError}</p>}
           </div>
           {loading && (
-            <div className="loading-state">
-              <LoaderCircle className="spinner" size={27} />
-              <p>Looking for shared notes and new possibilities.</p>
+            <div
+              className="catalogue-skeleton"
+              role="status"
+              aria-label="Finding fragrances"
+            >
+              {Array.from({ length: 3 }, (_, index) => (
+                <div key={index}>
+                  <span />
+                  <span />
+                  <span />
+                </div>
+              ))}
             </div>
           )}
           {error && (
@@ -730,7 +637,7 @@ export default function Discovery() {
               </button>
             </div>
           )}
-          {response && (
+          {response && !loading && (
             <>
               {response.excluded_notes.length > 0 && (
                 <div className="excluded-label" role="status">
@@ -751,10 +658,11 @@ export default function Discovery() {
                 </div>
               ) : (
                 <div className="fragrance-grid">
-                  {response.results.map((fragrance) => (
+                  {response.results.map((fragrance, index) => (
                     <FragranceCard
                       key={fragrance.id}
                       fragrance={fragrance}
+                      index={index}
                       preference={
                         shelf.find((item) => item.id === fragrance.id)
                           ?.preference
@@ -770,8 +678,8 @@ export default function Discovery() {
                 </div>
               )}
               <p className="sample-note">
-                <FlaskConical size={16} /> A shortlist, not a certainty. Try a
-                sample on your skin before a full bottle.
+                <FlaskConical size={16} /> Try a sample on your skin before
+                choosing a full bottle.
               </p>
             </>
           )}
@@ -842,17 +750,15 @@ export default function Discovery() {
         >
           <div className="section-heading">
             <div>
-              <h2 id="shelf-title">Keep a little collection.</h2>
-              <p>
-                Save a possibility. Like what you’ve tried. Skip what isn’t you.
-              </p>
+              <h2 id="shelf-title">Your private collection.</h2>
+              <p>The ones you’re drawn to. The ones that stay with you.</p>
             </div>
             <Bookmark size={22} strokeWidth={1.25} aria-hidden="true" />
           </div>
           {shelf.length === 0 ? (
             <div className="shelf-empty">
               <Bookmark size={22} strokeWidth={1.25} />
-              <p>A little space for your next signature.</p>
+              <p>Your next signature belongs here.</p>
               <a href="#results" className="text-button">
                 Explore your shortlist <ArrowDown size={15} />
               </a>

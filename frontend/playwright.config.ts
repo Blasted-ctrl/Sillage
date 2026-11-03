@@ -13,7 +13,10 @@ export default defineConfig({
     channel: 'chrome',
     headless: true,
     launchOptions: {
-      args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'],
+      args:
+        process.platform === 'win32'
+          ? []
+          : ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'],
     },
     trace: 'retain-on-failure',
   },
