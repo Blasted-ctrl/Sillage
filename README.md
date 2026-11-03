@@ -40,9 +40,10 @@ If port 8000 is occupied, choose another port for Uvicorn and set `API_PROXY_TAR
 
 ## Discovery experience
 
-The home page is a fragrance studio: ultramarine and lemon-yellow typography, a centered cobalt bottle, local Gloock/Manrope fonts, and a quieter pale-blue discovery workbench.
+The home page is an interactive fragrance study: midnight blue, pale yellow accents, architectural framing, oversized background lettering, and local Manrope typography. A sculptural glass bottle sits at the center, with directional studio reflections and a low mist atmosphere. A lighter discovery workbench keeps fragrance search and comparison readable.
 
 - **Explore the bottle:** drag to rotate, use the keyboard-accessible rotation buttons, or release a short mist burst. The atmosphere settles after 4.8 seconds rather than looping indefinitely.
+- **Glass and light:** the procedural Three.js / React Three Fiber bottle uses physical transmission, a separate liquid volume, a ribbed metal cap, and a transparent printed label. Studio lights are generated locally; there are no external model or environment downloads. The bottle is an original Sillage visual, not a product listing.
 - **Choose a mood:** Citrus & sky, Sunlit amber, and After the rain change both the visual bottle mood and the actual recommendation query.
 
 - **Describe a scent:** try `warm vanilla sandalwood`, `fresh citrus for summer`, or `woody vetiver without rose`.
@@ -136,7 +137,7 @@ npm run test:e2e
 
 Browser tests use installed Google Chrome with an isolated profile. Install it if needed with `npx playwright install chrome`. Tests start the frontend on 5177 and API on 8107 with one worker. Local runs may reuse services at those exact URLs; CI starts them fresh. Five browser flows cover real recommendations, exclusions, lookup, shelf persistence, comparison, errors, accessibility, responsive overflow, the centered bottle, mood-query wiring, and a mist burst that settles to a still frame. The workflow separately checks recommendation behavior through the Python tests, then frontend lint/build and browser checks.
 
-The centered 3D bottle and mist use Three.js through React Three Fiber. The scene is lazy loaded, renders on demand, caps pixel density, uses local geometry and generated textures, and loads no remote models or fonts. Rotation is user controlled with drag and keyboard-accessible buttons. Mist uses deterministic local sprite textures and a finite animation. Reduced motion uses a static mist pose and immediate bottle rotation, and disables cosmetic transitions and the loading spinner. WebGL failure leaves the search usable. Three.js is pinned to r182 to match Fiber 9's Clock-based runtime without deprecation warnings; revisit both together when upgrading the renderer.
+The centered 3D bottle and mist use Three.js through React Three Fiber. The scene is lazy loaded, renders on demand, caps pixel density, uses local geometry and generated textures, and loads no remote models or fonts. Rotation is user controlled with drag and keyboard-accessible buttons. Mist uses deterministic local sprite textures and a finite animation. Reduced motion uses a static mist pose and immediate bottle rotation, and disables cosmetic transitions and the loading spinner. WebGL failure leaves the search usable. Three.js is pinned to r182 to match Fiber 9's Clock-based runtime without deprecation warnings; revisit both together when upgrading the renderer. Browser tests allow two minutes per flow to accommodate software-rendered glass and multi-viewport captures; application request timeouts remain unchanged.
 
 The production dependency audit is clean at the time of this update. The full npm audit still reports 12 moderate development-tool dependency advisories in the ESLint/minimatch tree; avoid a forced downgrade or incompatible transitive override as a shortcut. The lazy 3D bundle is kept separate from the search interface and triggers Vite's default size advisory.
 

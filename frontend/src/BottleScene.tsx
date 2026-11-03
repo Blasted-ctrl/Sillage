@@ -4,10 +4,16 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import {
   Environment,
   Lightformer,
+  MeshTransmissionMaterial,
   OrbitControls,
   RoundedBox,
 } from '@react-three/drei'
-import { CanvasTexture, SRGBColorSpace, MathUtils } from 'three'
+import {
+  CanvasTexture,
+  SRGBColorSpace,
+  MathUtils,
+  AdditiveBlending,
+} from 'three'
 import type { Group, MeshStandardMaterial, Sprite, SpriteMaterial } from 'three'
 import { useReducedMotion } from './useReducedMotion'
 
@@ -70,15 +76,15 @@ function Mist({ burst, color }: { burst: number; color: string }) {
       const side = index % 2 === 0 ? -1 : 1
       const spread = 0.35 + (index % 7) * 0.23
       sprite.position.set(
-        side * (spread + progress * (0.9 + index * 0.04)),
-        -0.9 +
+        side * (spread * 1.4 + progress * (1.4 + index * 0.04)),
+        -1.45 +
           Math.sin(index * 1.7) * 0.3 +
           progress * (0.65 + (index % 3) * 0.12),
         index < 7 ? -0.8 : 0.65,
       )
-      sprite.scale.set(2.2 + progress * 1.5, 0.9 + progress * 0.8, 1)
+      sprite.scale.set(3.8 + progress * 2, 0.55 + progress * 0.8, 1)
       const material = sprite.material as SpriteMaterial
-      material.opacity = 0.065 + Math.sin(progress * Math.PI) * 0.15
+      material.opacity = 0.16 + Math.sin(progress * Math.PI) * 0.22
       material.rotation = side * (0.18 + progress * 0.2)
     }
   }
@@ -118,12 +124,40 @@ function Mist({ burst, color }: { burst: number; color: string }) {
             map={texture}
             color={color}
             transparent
-            opacity={0.065}
+            opacity={0.16}
+            blending={AdditiveBlending}
             depthWrite={false}
           />
         </sprite>
       ))}
     </group>
+  )
+}
+
+function Backlight({ color }: { color: string }) {
+  const [texture] = useState(() => {
+    const canvas = document.createElement('canvas')
+    canvas.width = canvas.height = 128
+    const context = canvas.getContext('2d')!
+    const glow = context.createRadialGradient(64, 64, 0, 64, 64, 64)
+    glow.addColorStop(0, color)
+    glow.addColorStop(1, color + '00')
+    context.fillStyle = glow
+    context.fillRect(0, 0, 128, 128)
+    const map = new CanvasTexture(canvas)
+    map.colorSpace = SRGBColorSpace
+    return map
+  })
+  useEffect(() => () => texture.dispose(), [texture])
+  return (
+    <sprite position={[0, 0, -1.5]} scale={[5, 5, 1]}>
+      <spriteMaterial
+        map={texture}
+        transparent
+        opacity={0.65}
+        depthWrite={false}
+      />
+    </sprite>
   )
 }
 
@@ -149,27 +183,27 @@ function Bottle({
     function paint() {
       if (disposed) return
       const context = canvas.getContext('2d')!
-      context.fillStyle = colors.paper
-      context.fillRect(0, 0, 512, 640)
+      context.clearRect(0, 0, 512, 640)
       context.strokeStyle = colors.ink
       context.lineWidth = 2
-      context.strokeRect(24, 24, 464, 592)
       context.fillStyle = colors.ink
       context.textAlign = 'center'
-      context.font = '78px ' + colors.serif
-      context.fillText('Sillage', 256, 280)
-      context.font = '21px ' + colors.sans
-      context.fillText('Follow your senses', 256, 337)
+      context.font = '600 66px ' + colors.sans
+      context.fillText('SILLAGE', 256, 248)
+      context.font = '19px ' + colors.sans
+      context.fillText('L’ART DE LA PRÉSENCE', 256, 294)
+      context.font = '18px ' + colors.sans
+      context.fillText('EAU DE PARFUM', 256, 524)
       context.beginPath()
       for (let line = 0; line < 3; line++) {
-        context.moveTo(218 + line * 32, 430)
+        context.moveTo(218 + line * 32, 140)
         context.bezierCurveTo(
           185 + line * 32,
-          405,
+          115,
           250 + line * 32,
-          390,
+          100,
           220 + line * 32,
-          365,
+          75,
         )
       }
       context.stroke()
@@ -201,67 +235,79 @@ function Bottle({
   })
 
   return (
-    <group ref={group} rotation={[0.08, -0.32, -0.06]} position={[0, -0.15, 0]}>
-      <RoundedBox args={[1.68, 2.3, 0.88]} radius={0.18} smoothness={5}>
-        <meshPhysicalMaterial
+    <group ref={group} rotation={[0.08, -0.32, -0.15]} position={[0, 0, 0]}>
+      <RoundedBox args={[1.62, 2.45, 0.84]} radius={0.13} smoothness={6}>
+        <MeshTransmissionMaterial
           color={colors.glass}
-          metalness={0.15}
-          roughness={0.12}
+          samples={4}
+          resolution={512}
+          backside
+          backsideResolution={128}
+          metalness={0}
+          roughness={0.08}
+          transmission={1}
+          thickness={0.8}
+          ior={1.5}
+          chromaticAberration={0.035}
+          temporalDistortion={0}
+          distortion={0}
           clearcoat={1}
-          clearcoatRoughness={0.1}
-          transparent
-          opacity={0.48}
-          depthWrite={false}
+          envMapIntensity={1.2}
         />
       </RoundedBox>
       <RoundedBox
-        args={[1.44, 1.43, 0.65]}
-        position={[0, -0.3, 0]}
-        radius={0.08}
+        args={[1.37, 1.72, 0.62]}
+        position={[0, -0.18, 0]}
+        radius={0.1}
         smoothness={3}
       >
-        <meshStandardMaterial
+        <meshPhysicalMaterial
           color={colors['liquid' + mood]}
-          metalness={0.15}
-          roughness={0.24}
+          metalness={0.1}
+          roughness={0.12}
           transparent
-          opacity={0.85}
+          opacity={0.23}
+          depthWrite={false}
+          thickness={0.5}
+          ior={1.33}
+          clearcoat={1}
         />
       </RoundedBox>
-      <mesh position={[0, 1.25, 0]}>
-        <cylinderGeometry args={[0.25, 0.29, 0.28, 40]} />
+      <mesh position={[0, 1.3, 0]}>
+        <cylinderGeometry args={[0.29, 0.29, 0.16, 64]} />
         <meshStandardMaterial
           color={colors.gold}
           metalness={0.85}
           roughness={0.22}
         />
       </mesh>
-      <group position={[0, 1.64, 0]}>
+      <group position={[0, 1.66, 0]}>
         <mesh>
-          <cylinderGeometry args={[0.43, 0.43, 0.58, 48]} />
-          <meshStandardMaterial
+          <cylinderGeometry args={[0.35, 0.36, 0.58, 64]} />
+          <meshPhysicalMaterial
             color={colors.cap}
-            metalness={0.55}
-            roughness={0.18}
+            metalness={0.8}
+            roughness={0.19}
+            clearcoat={1}
           />
         </mesh>
         <mesh position={[0, 0.3, 0]}>
-          <cylinderGeometry args={[0.4, 0.43, 0.035, 48]} />
+          <cylinderGeometry args={[0.345, 0.35, 0.035, 64]} />
           <meshStandardMaterial
-            color={colors.gold}
-            metalness={0.65}
+            color={colors.cap}
+            metalness={0.8}
             roughness={0.25}
           />
         </mesh>
-        {Array.from({ length: 24 }, (_, index) => {
-          const angle = (index / 24) * Math.PI * 2
+        {Array.from({ length: 40 }, (_, index) => {
+          const angle = (index / 40) * Math.PI * 2
           return (
             <mesh
               key={index}
-              position={[Math.sin(angle) * 0.427, 0, Math.cos(angle) * 0.427]}
+              position={[Math.sin(angle) * 0.354, 0, Math.cos(angle) * 0.354]}
               rotation={[0, angle, 0]}
             >
-              <boxGeometry args={[0.018, 0.48, 0.018]} />
+              <boxGeometry args={[0.008, 0.49, 0.012]} />
               <meshStandardMaterial
                 color={colors.rib}
                 metalness={0.8}
@@ -271,20 +317,35 @@ function Bottle({
           )
         })}
       </group>
-      <mesh position={[0, -0.02, 0.449]}>
-        <planeGeometry args={[1.04, 1.3]} />
-        <meshStandardMaterial ref={labelMaterial} roughness={0.8} />
+      <mesh
+        position={[0, -0.02, 0.435]}
+        renderOrder={5}
+        onBeforeRender={(renderer) => {
+          // Printed lettering sits on the glass; exclude it from the
+          // refraction buffer so it does not produce a second, warped label.
+          if (labelMaterial.current) {
+            labelMaterial.current.opacity = renderer.getRenderTarget() ? 0 : 1
+          }
+        }}
+      >
+        <planeGeometry args={[1.23, 1.7]} />
+        <meshStandardMaterial
+          ref={labelMaterial}
+          roughness={0.3}
+          transparent
+          depthWrite={false}
+        />
       </mesh>
       <RoundedBox
-        args={[1.58, 0.09, 0.78]}
-        radius={0.035}
-        position={[0, -1.12, 0]}
+        args={[1.54, 0.13, 0.77]}
+        radius={0.045}
+        position={[0, -1.13, 0]}
         smoothness={3}
       >
         <meshStandardMaterial
           color={colors.glass}
-          metalness={0.55}
-          roughness={0.1}
+          metalness={0.7}
+          roughness={0.08}
         />
       </RoundedBox>
     </group>
@@ -314,6 +375,7 @@ export default function BottleScene({
         'cap',
         'rib',
         'mist',
+        'light',
         'serif',
         'sans',
       ].map((name) => [
@@ -327,7 +389,7 @@ export default function BottleScene({
       <Canvas
         frameloop="demand"
         dpr={[1, 1.5]}
-        camera={{ position: [0, 0.3, 6.3], fov: 37 }}
+        camera={{ position: [0, 0.5, 7.5], fov: 37 }}
         fallback={
           <div className="scene-fallback">
             A little mystery. A scent of your own.
@@ -335,29 +397,54 @@ export default function BottleScene({
         }
         gl={{ antialias: true, alpha: true }}
       >
-        <ambientLight intensity={1.2} />
-        <directionalLight position={[-3, 4, 5]} intensity={3} />
+        <ambientLight intensity={0.5} />
+        <directionalLight
+          position={[-3, 4, 5]}
+          intensity={2}
+          color={colors.ink}
+        />
         <Bottle rotation={rotation} mood={mood} colors={colors} />
+        <Backlight color={colors.mist} />
         <Mist burst={burst} color={colors.mist} />
-        <Environment resolution={128}>
-          <Lightformer
-            form="rect"
-            intensity={5}
-            position={[3, 2, 3]}
-            scale={[2, 6, 1]}
-          />
+        <Environment resolution={256}>
           <Lightformer
             form="rect"
             intensity={3}
-            position={[-3, 1, 2]}
-            scale={[1, 5, 1]}
+            position={[4, 2, 2]}
+            target={[0, 0, 0]}
+            scale={[0.8, 7, 1]}
+            color={colors.ink}
+          />
+          <Lightformer
+            form="rect"
+            intensity={4}
+            position={[-4, 1, 1]}
+            target={[0, 0, 0]}
+            scale={[0.6, 7, 1]}
+            color={colors.light}
           />
           <Lightformer
             form="rect"
             color={colors.gold}
+            intensity={3}
+            position={[0, 4, 1]}
+            target={[0, 0, 0]}
+            scale={[4, 2, 1]}
+          />
+          <Lightformer
+            form="rect"
+            color={colors.ink}
             intensity={2}
-            position={[0, -2, 2]}
-            scale={[4, 1, 1]}
+            position={[-1, 0, 4]}
+            target={[0, 0, 0]}
+            scale={[0.35, 5, 1]}
+          />
+          <Lightformer
+            form="ring"
+            color={colors.glass}
+            intensity={4}
+            position={[0, 1, -3]}
+            scale={4}
           />
         </Environment>
         <OrbitControls

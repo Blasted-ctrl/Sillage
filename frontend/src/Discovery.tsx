@@ -369,10 +369,16 @@ export default function Discovery() {
       </header>
       <main>
         <section className="hero-section" aria-labelledby="hero-title">
-          <h1 id="hero-title">Something in the air.</h1>
+          <div className="hero-wordscape" aria-hidden="true" />
+          <div className="scene-coordinate" aria-hidden="true">
+            The art of leaving a trace
+          </div>
+          <div className="hero-title-block">
+            <h1 id="hero-title">Leave a little mystery.</h1>
+          </div>
           <div className="hero-moods">
             <fieldset>
-              <legend>Find your mood</legend>
+              <legend>Explore an atmosphere</legend>
               {presets.map((preset, index) => (
                 <button
                   key={preset.name}
@@ -389,10 +395,31 @@ export default function Discovery() {
                 </button>
               ))}
             </fieldset>
+          </div>
+          <div className="hero-profile">
+            <svg
+              className="profile-symbol"
+              aria-hidden="true"
+              width="40"
+              height="40"
+              viewBox="0 0 40 40"
+              fill="none"
+            >
+              <path
+                d="M20 0V40M0 20H40M6 6L34 34M6 34L34 6"
+                stroke="currentColor"
+                strokeWidth="2"
+              />
+            </svg>
+            <p className="profile-name">{presets[mood].name}</p>
             <dl className="mood-notes">
               <div>
                 <dt>Opens with</dt>
                 <dd>{presets[mood].notes[0]}</dd>
+              </div>
+              <div>
+                <dt>At the heart</dt>
+                <dd>{presets[mood].notes[1]}</dd>
               </div>
               <div>
                 <dt>Settles into</dt>
@@ -401,6 +428,8 @@ export default function Discovery() {
             </dl>
           </div>
           <figure className="bottle-stage">
+            <div className="scene-halo" aria-hidden="true" />
+            <div className="scene-orbit" aria-hidden="true" />
             <div className="mist-ground" aria-hidden="true" />
             <div className="bottle-canvas" aria-hidden="true">
               <Suspense
@@ -444,9 +473,7 @@ export default function Discovery() {
             <figcaption>Drag to explore the bottle</figcaption>
           </figure>
           <div className="hero-copy">
-            <p>
-              Find fragrances that feel like you, before you buy the bottle.
-            </p>
+            <p>Find a fragrance that feels like you. Before the blind buy.</p>
             <a
               className="primary-button"
               href="#discover"
@@ -454,15 +481,13 @@ export default function Discovery() {
             >
               Find my scent <ArrowRight size={18} aria-hidden="true" />
             </a>
-            <span className="hero-footnote">
-              Less guesswork.
-              <br />
-              More good chemistry.
-            </span>
           </div>
           <a className="hero-scroll" href="#discover">
-            Follow your senses <ArrowDown size={15} aria-hidden="true" />
+            Explore your scent <ArrowDown size={15} aria-hidden="true" />
           </a>
+          <span className="hero-definition">
+            Sillage / the scent that stays after you leave.
+          </span>
         </section>
         <section
           id="discover"

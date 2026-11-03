@@ -1,9 +1,11 @@
-/* Hallmark · shape: app screen · genre: atmospheric · theme: custom · idea: a scent suspended in air · posture: Full-palette, requested blue and yellow · v2.0.0 */
-/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V5 · weakest: S; made scent moods change the actual discovery query and bottle. */
+/* Hallmark · shape: app screen · genre: atmospheric · theme: custom · idea: a sculptural fragrance study after dark · posture: dark blue and pale yellow, from user references · v2.0.0 */
+/* Hallmark · pre-emit critique: replaced the rejected serif composition with architectural framing, a central glass bottle and edge-aligned scent controls. */
 /* Hallmark · dismissed 3 · the fragrance and comparison grids contain actual product data rather than feature icon tiles. */
-/* Hallmark · dismissed 23 · the requested blue and yellow palette uses yellow as display ink over blue, not as incidental emphasis. */
+/* Hallmark · dismissed 23 · midnight blue and restrained yellow follow the user's supplied cinematic references. */
 /* Hallmark · dismissed F6 · empty-state is descriptive copy, not a numerical data figure. */
-/* Hallmark · finish-review: subagent · fix · 1 finding · 1 resolved · cap has clear separation from the headline; bottle remains centered. */
+/* Hallmark · dismissed 40 · the low-contrast background wordmark is explicitly aria-hidden decoration; the footer uses a later high-contrast override, verified by browser axe checks with zero violations. */
+/* Hallmark · hero-review: subagent · fix · 4 findings · 4 resolved: glass depth, quiet orbit, continuous mist fade and mobile word separation. */
+/* Hallmark · finish-review: subagent · ship · 0 findings · current full-page mobile and desktop captures verified. */
 /* Hallmark · dropped Vite counter and framework documentation links · user requested a complete fragrance UI redesign. */
 @import url('./tokens.css');
 @import url('./base.css');
@@ -1253,4 +1255,662 @@ dd {
   .fragrance-card:hover {
     transform: none;
   }
+}
+
+/* Reference-led art direction: a sculptural fragrance study after dark. */
+h1,
+h2,
+h3 {
+  font-weight: 600;
+}
+.site-shell {
+  padding-top: 20px;
+  background: var(--color-night);
+}
+main {
+  background: var(--color-paper);
+}
+.site-header {
+  position: relative;
+  z-index: 3;
+  min-height: 76px;
+  max-width: 1480px;
+  margin-inline: auto;
+  padding-inline: max(44px, calc((100% - 1280px) / 2));
+  background: var(--color-night);
+}
+.site-header::before {
+  content: '';
+  position: absolute;
+  inset: 0 24px;
+  border: 1px solid var(--color-night-line);
+  border-bottom: 0;
+  pointer-events: none;
+}
+.site-header .wordmark {
+  color: var(--color-night-ink);
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  text-transform: uppercase;
+  gap: var(--space-sm);
+}
+.brand-mark {
+  order: -1;
+  margin: 0;
+  color: var(--color-accent);
+}
+nav {
+  gap: 36px;
+  font-size: 12px;
+}
+nav a {
+  color: var(--color-night-muted);
+}
+nav .nav-active {
+  color: var(--color-night-ink);
+}
+nav .nav-method {
+  border: 1px solid var(--color-night-line);
+  padding-inline: 20px;
+  color: var(--color-accent);
+}
+.hero-section {
+  display: block;
+  height: 684px;
+  padding: 0;
+  overflow: clip;
+  background: var(--color-night);
+}
+.hero-section::before {
+  content: '';
+  position: absolute;
+  z-index: 3;
+  inset: 0 max(24px, calc((100% - 1432px) / 2)) 20px;
+  border: 1px solid var(--color-night-line);
+  border-top: 0;
+  pointer-events: none;
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - 22px),
+    calc(100% - 22px) 100%,
+    22px 100%,
+    0 calc(100% - 22px)
+  );
+}
+.hero-section::after {
+  content: '';
+  position: absolute;
+  inset: 45% 0 0;
+  background: radial-gradient(
+    ellipse at 50% 30%,
+    var(--color-halo),
+    var(--color-clear) 62%
+  );
+  z-index: -1;
+  pointer-events: none;
+}
+.hero-wordscape {
+  position: absolute;
+  inset: 24px 0 auto;
+  width: 100%;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: clamp(110px, 15.3vw, 226px);
+  line-height: 1;
+  letter-spacing: -0.075em;
+  padding-right: 0.075em;
+  font-weight: 800;
+  color: var(--color-night-word);
+  pointer-events: none;
+  user-select: none;
+}
+.scene-coordinate {
+  position: absolute;
+  top: 19px;
+  left: max(52px, calc((100% - 1280px) / 2));
+  color: var(--color-night-muted);
+  font-size: 11px;
+  z-index: 2;
+}
+.hero-title-block {
+  position: absolute;
+  bottom: 100px;
+  left: max(52px, calc((100% - 1280px) / 2));
+  z-index: 2;
+  pointer-events: none;
+}
+.hero-section h1 {
+  position: static;
+  inset: auto;
+  margin: 0;
+  text-align: left;
+  color: var(--color-night-ink);
+  font-size: clamp(32px, 3.5vw, 50px);
+  font-weight: 600;
+  letter-spacing: -0.055em;
+  line-height: 1.08;
+}
+.hero-moods {
+  position: absolute;
+  left: max(52px, calc((100% - 1280px) / 2));
+  top: 210px;
+  margin: 0;
+  width: 174px;
+  max-width: none;
+}
+.hero-moods legend {
+  font-size: 11px;
+  margin-bottom: var(--space-sm);
+  color: var(--color-night-muted);
+}
+.hero-moods button {
+  font-size: 12px;
+  min-height: 40px;
+  padding: var(--space-sm) 0;
+  border-color: var(--color-night-line);
+}
+.hero-moods button[aria-pressed='true'] {
+  border-color: var(--color-night-line);
+}
+.hero-moods button svg {
+  width: 14px;
+}
+.hero-profile {
+  position: absolute;
+  right: max(52px, calc((100% - 1280px) / 2));
+  top: 192px;
+  z-index: 2;
+  width: 160px;
+}
+.profile-symbol {
+  font-size: 43px;
+  line-height: 1;
+  color: var(--color-accent);
+}
+.profile-name {
+  font-size: 13px;
+  margin-top: var(--space-md);
+}
+.mood-notes {
+  gap: 0;
+  margin-top: var(--space-md);
+}
+.mood-notes > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding-block: var(--space-xs);
+  border-top: 1px solid var(--color-night-line);
+}
+.mood-notes dt {
+  font-size: 10px;
+  color: var(--color-night-muted);
+}
+.mood-notes dd {
+  font-size: 11px;
+  margin: 0;
+}
+.bottle-stage {
+  position: absolute;
+  inset: 0;
+  margin: 0 auto;
+  height: 575px;
+  width: min(100%, 1000px);
+  isolation: isolate;
+}
+.bottle-canvas {
+  inset: -24px 0 16px;
+  z-index: 1;
+}
+.scene-halo {
+  position: absolute;
+  inset: 9% 12% 11%;
+  background: radial-gradient(
+    ellipse at 50% 55%,
+    var(--color-halo-core),
+    var(--color-halo) 35%,
+    var(--color-clear) 66%
+  );
+  pointer-events: none;
+}
+.scene-orbit {
+  position: absolute;
+  width: 450px;
+  height: 450px;
+  border: 1px solid var(--color-orbit);
+  border-radius: 50%;
+  left: calc(50% - 225px);
+  top: 25px;
+  transform: rotate(-28deg) scaleX(0.72);
+  pointer-events: none;
+}
+.scene-orbit::before,
+.scene-orbit::after {
+  content: '';
+  position: absolute;
+  inset: 9px;
+  border: 1px solid var(--color-orbit);
+  border-radius: 50%;
+}
+.scene-orbit::after {
+  inset: -12px;
+  opacity: 0.35;
+}
+.mist-ground {
+  inset: auto 5% 73px;
+  height: 100px;
+  background: radial-gradient(
+    ellipse,
+    var(--color-halo-core),
+    var(--color-clear) 68%
+  );
+  opacity: 0.65;
+}
+.bottle-controls {
+  inset: auto 0 32px;
+  gap: var(--space-xs);
+}
+.bottle-controls .icon-button {
+  min-width: 32px;
+}
+.mist-button {
+  border-radius: 0;
+  border-color: var(--color-night-line);
+  font-size: 11px;
+  min-height: 36px;
+  padding-inline: var(--space-md);
+  background: var(--color-clear);
+}
+.bottle-stage figcaption {
+  inset: auto 0 14px;
+  font-size: 10px;
+  color: var(--color-night-muted);
+}
+.hero-copy {
+  position: absolute;
+  right: max(52px, calc((100% - 1280px) / 2));
+  bottom: 100px;
+  width: 235px;
+  margin: 0;
+}
+.hero-copy > p {
+  font-size: 12px;
+  line-height: 1.75;
+  color: var(--color-on-blue-muted);
+  max-width: 230px;
+}
+.primary-button {
+  border-radius: 0;
+  min-height: 48px;
+  font-size: 12px;
+}
+.hero-copy .primary-button {
+  margin-top: var(--space-md);
+  min-width: 192px;
+  justify-content: space-between;
+}
+.hero-scroll {
+  inset: auto auto 27px max(52px, calc((100% - 1280px) / 2));
+  font-size: 10px;
+  color: var(--color-night-muted);
+}
+.hero-definition {
+  position: absolute;
+  right: max(52px, calc((100% - 1280px) / 2));
+  bottom: 42px;
+  font-size: 10px;
+  color: var(--color-night-muted);
+}
+.hero-definition::before {
+  content: '';
+  position: absolute;
+  top: -20px;
+  width: min(1280px, calc(100% + 750px));
+  right: 0;
+  height: 1px;
+  background: var(--color-night-line);
+}
+.discovery-section {
+  padding-top: 76px;
+}
+.section-heading h2 {
+  font-size: clamp(28px, 3.2vw, 42px);
+  line-height: 1.15;
+  letter-spacing: -0.055em;
+  font-weight: 600;
+}
+.section-symbol {
+  border: 1px solid var(--color-rule);
+  width: 60px;
+  height: 60px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+}
+.search-workbench,
+.fragrance-card,
+.comparison-grid article {
+  border-radius: 0;
+}
+.fragrance-card h3 {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.045em;
+}
+.fragrance-card {
+  box-shadow: none;
+}
+.accords span {
+  border-radius: 0;
+}
+.approach-section h2 {
+  font-weight: 600;
+  font-size: 46px;
+  letter-spacing: -0.055em;
+}
+.site-footer {
+  background: var(--color-night);
+  color: var(--color-night-ink);
+}
+.site-footer p {
+  color: var(--color-night-muted);
+}
+@media (min-width: 1600px) {
+  .hero-section {
+    height: 744px;
+  }
+  .bottle-stage {
+    height: 635px;
+  }
+  .hero-wordscape {
+    top: 25px;
+  }
+  .scene-orbit {
+    top: 50px;
+    width: 490px;
+    height: 490px;
+    left: calc(50% - 245px);
+  }
+  .hero-moods {
+    top: 250px;
+  }
+  .hero-profile {
+    top: 232px;
+  }
+}
+@media (max-width: 900px) {
+  .site-header {
+    padding-inline: 44px;
+  }
+  .hero-moods {
+    width: 140px;
+    left: 44px;
+  }
+  .hero-profile {
+    width: 130px;
+    right: 44px;
+  }
+  .hero-title-block {
+    left: 44px;
+  }
+  .hero-copy {
+    right: 44px;
+    width: 200px;
+  }
+  .hero-section h1 {
+    font-size: 35px;
+  }
+  .hero-wordscape {
+    top: 64px;
+  }
+  .bottle-stage {
+    width: 85%;
+  }
+  .bottle-canvas {
+    inset: 5px 0 16px;
+  }
+  .hero-definition,
+  .hero-scroll {
+    font-size: 9px;
+  }
+}
+@media (max-width: 620px) {
+  .site-shell {
+    padding-top: var(--space-sm);
+  }
+  .site-header {
+    min-height: 64px;
+    padding-inline: 28px;
+  }
+  .site-header::before {
+    inset-inline: 12px;
+  }
+  .site-header .wordmark {
+    font-size: 22px;
+    gap: var(--space-xs);
+  }
+  .site-header .brand-mark {
+    width: 20px;
+  }
+  nav {
+    gap: var(--space-md);
+    font-size: 11px;
+  }
+  .nav-method {
+    display: none;
+  }
+  .hero-section {
+    height: 840px;
+  }
+  .hero-section::before {
+    inset-inline: 12px;
+  }
+  .hero-wordscape {
+    top: 36px;
+    font-size: 15.2vw;
+  }
+  .scene-coordinate {
+    top: 12px;
+    left: 28px;
+    font-size: 10px;
+  }
+  .bottle-stage {
+    width: 100%;
+    height: 450px;
+    top: 36px;
+  }
+  .bottle-canvas {
+    inset: -2px 0 30px;
+  }
+  .scene-orbit {
+    width: 300px;
+    height: 300px;
+    top: 32px;
+    left: calc(50% - 150px);
+  }
+  .scene-halo {
+    inset: 0 0 12%;
+  }
+  .mist-ground {
+    bottom: 85px;
+  }
+  .bottle-controls {
+    bottom: 24px;
+  }
+  .bottle-stage figcaption {
+    bottom: 6px;
+  }
+  .hero-title-block {
+    top: 498px;
+    left: 28px;
+    bottom: auto;
+    right: 28px;
+    max-width: 310px;
+  }
+  .hero-section h1 {
+    font-size: 39px;
+    line-height: 1.05;
+  }
+  .hero-section h1 br {
+    display: none;
+  }
+  .hero-moods {
+    display: block;
+    top: 685px;
+    left: 28px;
+    right: 28px;
+    width: auto;
+  }
+  .hero-moods fieldset {
+    display: flex;
+    gap: var(--space-md);
+  }
+  .hero-moods legend {
+    display: block;
+    font-size: 10px;
+    margin-bottom: 0;
+  }
+  .hero-moods button {
+    font-size: 10px;
+    width: auto;
+    flex: 1;
+    gap: var(--space-2xs);
+    padding-block: var(--space-xs);
+    min-height: 44px;
+  }
+  .hero-moods button svg {
+    display: none;
+  }
+  .hero-profile {
+    display: none;
+  }
+  .hero-copy {
+    top: 594px;
+    bottom: auto;
+    left: 28px;
+    right: 28px;
+    width: auto;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .hero-copy > p {
+    font-size: 11px;
+    max-width: 155px;
+    line-height: 1.65;
+  }
+  .hero-copy .primary-button {
+    margin: 0;
+    min-width: 145px;
+    padding: var(--space-sm) var(--space-md);
+    font-size: 11px;
+    gap: var(--space-sm);
+  }
+  .hero-scroll {
+    bottom: 27px;
+    left: 28px;
+    font-size: 10px;
+  }
+  .hero-definition {
+    bottom: 76px;
+    left: 28px;
+    right: 28px;
+    font-size: 9px;
+  }
+  .hero-definition::before {
+    width: 100%;
+    top: -12px;
+  }
+  .discovery-section {
+    padding-top: 44px;
+  }
+  .section-symbol {
+    display: none;
+  }
+  .section-heading h2 {
+    font-size: 31px;
+  }
+  .approach-section h2 {
+    font-size: 36px;
+  }
+}
+@media (max-width: 360px) {
+  .hero-copy {
+    gap: var(--space-sm);
+  }
+  .hero-copy .primary-button {
+    min-width: 130px;
+    padding-inline: var(--space-sm);
+  }
+  nav {
+    gap: var(--space-sm);
+  }
+  .hero-section h1 {
+    font-size: 36px;
+  }
+}
+/* Explicit placement prevents legacy grid alignment affecting the new stage. */
+.bottle-stage {
+  align-self: start;
+  bottom: auto;
+}
+.hero-copy {
+  flex-direction: row;
+  text-align: left;
+}
+.hero-moods legend {
+  text-align: left;
+}
+@media (max-width: 620px) {
+  .bottle-stage {
+    inset: 36px 0 auto;
+  }
+  .hero-copy {
+    flex-direction: row;
+  }
+  .hero-moods {
+    margin: 0;
+  }
+  .hero-moods legend {
+    width: auto;
+  }
+  .hero-scroll {
+    display: inline-flex;
+  }
+}
+.hero-section::after {
+  background: none;
+}
+.hero-title-block {
+  width: 330px;
+}
+@media (max-width: 620px) {
+  .hero-title-block {
+    width: auto;
+  }
+}
+
+.scene-orbit {
+  opacity: 0.2;
+}
+.site-footer > a:last-child {
+  color: var(--color-night-muted);
+}
+.mist-button {
+  background: var(--color-clear);
+}
+
+.hero-section h1 {
+  text-wrap: wrap;
+}
+@media (min-width: 621px) and (max-width: 1000px) {
+  .hero-title-block {
+    width: 240px;
+  }
+}
+/* This wordmark is background artwork, not readable page content. */
+.hero-wordscape::before {
+  content: 'SILLAGE';
 }
